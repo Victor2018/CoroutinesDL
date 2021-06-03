@@ -2,7 +2,6 @@ package org.victor.dl
 
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -10,9 +9,8 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.TextView
 import com.google.android.material.textview.MaterialTextView
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -20,6 +18,7 @@ import org.victor.dl.library.CoroutinesDL.download
 import org.victor.dl.library.core.DownloadTask
 import org.victor.dl.library.data.State
 import org.victor.dl.library.util.InstallApkUtil
+import java.io.File
 
 
 /*
@@ -43,6 +42,7 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
     var mTvStatus: MaterialTextView? = null
     var mPbDownloadProgress: ProgressBar? = null
 
+    var lifecycleScope: CoroutineScope? = null
     var mLatestVersionData: LatestVersionData? = null
     var downloadTask: DownloadTask? = null
     override fun bindContentView() = R.layout.dlg_app_update
@@ -84,15 +84,15 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
             mIvClose?.visibility = View.VISIBLE
         }
 
-        downloadTask = GlobalScope.download(mLatestVersionData?.appDownloadUrl!!,context.filesDir.path)
+        downloadTask = lifecycleScope?.download(mLatestVersionData?.appDownloadUrl!!,context.filesDir.path)
 
         // listen download progress
         downloadTask?.progress()
             ?.onEach {
                 Log.e(TAG,"percent = " + it.percent())
-                mPbDownloadProgress?.setProgress((it.percent()).toInt())
+                mPbDownloadProgress?.progress = it.percent().toInt()
             }
-            ?.launchIn(GlobalScope)
+            ?.launchIn(lifecycleScope!!)
 
         // or listen download state
         downloadTask?.state()
@@ -115,11 +115,11 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
                     }
                     is State.Succeed -> {
                         Log.e(TAG,"state = Succeed..................")
-                        InstallApkUtil.install(context,downloadTask?.file()!!)
+                        install()
                     }
                 }
             }
-            ?.launchIn(GlobalScope)
+            ?.launchIn(lifecycleScope!!)
 
     }
 
@@ -129,21 +129,13 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
                 dismiss()
             }
             R.id.mTvUpdateNow -> {
-                var isSucceed = downloadTask?.isSucceed() ?: false
-                if (isSucceed) {
-                    install()
-                } else {
-                    download()
-                }
+                download()
             }
         }
     }
 
     fun install () {
-        mTvUpdateNow?.text = "安装"
-        mTvUpdateNow?.visibility = View.VISIBLE
-        mPbDownloadProgress?.visibility = View.GONE
-        mTvStatus?.text = ""
+        InstallApkUtil.install(context,downloadTask?.file()!!)
     }
 
     fun download () {
@@ -152,4 +144,5 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
         mTvStatus?.text = "正在更新..."
         downloadTask?.start()
     }
+
 }

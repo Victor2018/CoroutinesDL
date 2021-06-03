@@ -1,5 +1,6 @@
 package org.victor.dl.library.core
 
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
@@ -25,6 +26,7 @@ import java.io.File
  */
 @OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineScope) {
+    val TAG = "RangeDownloader"
     private lateinit var file: File
     private lateinit var shadowFile: File
     private lateinit var tmpFile: File
@@ -82,8 +84,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
             }
         } else {
             if (shadowFile.exists() && tmpFile.exists()) {
-                rangeTmpFile =
-                    RangeTmpFileUtil(tmpFile)
+                rangeTmpFile = RangeTmpFileUtil(tmpFile)
                 rangeTmpFile.read()
 
                 if (!rangeTmpFile.isValid(contentLength, totalRanges)) {
