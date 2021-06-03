@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.victor.dl.library.CoroutinesDL.download
 import org.victor.dl.library.core.DownloadTask
+import org.victor.dl.library.data.State
 import org.victor.dl.library.util.InstallApkUtil
 
 
@@ -93,11 +94,29 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
             }
             ?.launchIn(GlobalScope)
 
-// or listen download state
+        // or listen download state
         downloadTask?.state()
             ?.onEach {
-                if (downloadTask?.isSucceed()!!) {
-                    InstallApkUtil.install(context,downloadTask?.file()!!)
+                when (it) {
+                    is State.None -> {
+                        Log.e(TAG,"state = None..................")
+                    }
+                    is State.Waiting -> {
+                        Log.e(TAG,"state = Waiting..................")
+                    }
+                    is State.Downloading -> {
+                        Log.e(TAG,"state = Downloading..................")
+                    }
+                    is State.Failed -> {
+                        Log.e(TAG,"state = Failed..................")
+                    }
+                    is State.Stopped -> {
+                        Log.e(TAG,"state = Stopped..................")
+                    }
+                    is State.Succeed -> {
+                        Log.e(TAG,"state = Succeed..................")
+                        InstallApkUtil.install(context,downloadTask?.file()!!)
+                    }
                 }
             }
             ?.launchIn(GlobalScope)
@@ -110,12 +129,27 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
                 dismiss()
             }
             R.id.mTvUpdateNow -> {
-                mTvUpdateNow?.visibility = View.INVISIBLE
-                mPbDownloadProgress?.visibility = View.VISIBLE
-                mTvStatus?.text = "正在更新..."
-                // start download
-                downloadTask?.start()
+                var isSucceed = downloadTask?.isSucceed() ?: false
+                if (isSucceed) {
+                    install()
+                } else {
+                    download()
+                }
             }
         }
+    }
+
+    fun install () {
+        mTvUpdateNow?.text = "安装"
+        mTvUpdateNow?.visibility = View.VISIBLE
+        mPbDownloadProgress?.visibility = View.GONE
+        mTvStatus?.text = ""
+    }
+
+    fun download () {
+        mTvUpdateNow?.visibility = View.INVISIBLE
+        mPbDownloadProgress?.visibility = View.VISIBLE
+        mTvStatus?.text = "正在更新..."
+        downloadTask?.start()
     }
 }

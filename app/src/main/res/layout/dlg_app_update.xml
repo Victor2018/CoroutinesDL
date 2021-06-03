@@ -90,9 +90,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_height="14dp"
         android:max="100"
-        android:progress="80"
+        android:progress="0"
         android:progressDrawable="@drawable/pb_update_download"
         android:visibility="gone"
+        tools:progress="60"
         tools:visibility="visible"/>
 
     <TextView

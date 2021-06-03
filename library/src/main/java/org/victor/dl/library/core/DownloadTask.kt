@@ -35,6 +35,7 @@ open class DownloadTask(
 
     private val downloadProgressFlow = MutableStateFlow(0)
     private val downloadStateFlow = MutableStateFlow<State>(stateHolder.none)
+    private var downloadComplete: Boolean = false
 
     fun isStarted(): Boolean {
         return stateHolder.isStarted()
@@ -70,6 +71,7 @@ open class DownloadTask(
      */
     fun start() {
         Log.e(javaClass.simpleName,"start..........")
+        downloadComplete = false
         coroutineScope.launch {
             if (checkJob()) return@launch
 
@@ -170,21 +172,22 @@ open class DownloadTask(
      */
     fun progress(interval: Long = 200, ensureLast: Boolean = true): Flow<Progress> {
         return downloadProgressFlow.flatMapConcat {
-            // make sure send once
-            var hasSend = false
             channelFlow {
                 while (currentCoroutineContext().isActive) {
                     val progress = getProgress()
 
-                    if (hasSend && stateHolder.isEnd()) {
+                    if (downloadComplete && stateHolder.isEnd()) {
                         if (!ensureLast) {
                             break
                         }
                     }
 
-                    send(progress)
-                    Log.e(TAG,"url ${param.url} progress ${progress.percentStr()}")
-                    hasSend = true
+                    if (progress.percent() > 0 && !downloadComplete) {
+                        send(progress)
+                        Log.e(TAG,"url = ${param.url}")
+                        Log.e(TAG,"progress =  ${progress.percentStr()}")
+                        downloadComplete = progress.isComplete()
+                    }
 
                     if (progress.isComplete()) break
 
@@ -210,32 +213,32 @@ open class DownloadTask(
     private suspend fun notifyWaiting() {
         stateHolder.updateState(stateHolder.waiting, getProgress())
         downloadStateFlow.value = stateHolder.currentState
-        Log.e(TAG,"url ${param.url} download task waiting.")
+        Log.e(TAG,"notifyWaiting-url = ${param.url} download task waiting.")
     }
 
     private suspend fun notifyStarted() {
         stateHolder.updateState(stateHolder.downloading, getProgress())
         downloadStateFlow.value = stateHolder.currentState
         downloadProgressFlow.value = downloadProgressFlow.value + 1
-        Log.e(TAG,"url ${param.url} download task start.")
+        Log.e(TAG,"notifyStarted-url = ${param.url} download task start.")
     }
 
     private suspend fun notifyStopped() {
         stateHolder.updateState(stateHolder.stopped, getProgress())
         downloadStateFlow.value = stateHolder.currentState
-        Log.e(TAG,"url ${param.url} download task stopped.")
+        Log.e(TAG,"notifyStopped-url = ${param.url} download task stopped.")
     }
 
     private suspend fun notifyFailed() {
         stateHolder.updateState(stateHolder.failed, getProgress())
         downloadStateFlow.value = stateHolder.currentState
-        Log.e(TAG,"url ${param.url} download task failed.")
+        Log.e(TAG,"notifyFailed-url = ${param.url} download task failed.")
     }
 
     private suspend fun notifySucceed() {
         stateHolder.updateState(stateHolder.succeed, getProgress())
         downloadStateFlow.value = stateHolder.currentState
-        Log.e(TAG,"url ${param.url} download task succeed.")
+        Log.e(TAG,"notifySucceed-url = ${param.url} download task succeed.")
     }
 
     private fun Progress.isComplete(): Boolean {
