@@ -24,8 +24,7 @@ object CoroutinesDL {
         saveName: String? = null
     ): DownloadTask {
         Log.e(javaClass.simpleName,"download-savePath = $savePath")
-        val downloadParam =
-            DownloadParam(url, saveName ?: "", savePath)
+        val downloadParam = DownloadParam(url, saveName ?: "", savePath)
         val  downloadConfig = DownloadConfig()
         val task = DownloadTask(this, downloadParam, downloadConfig)
         return downloadConfig.taskManager.add(task)

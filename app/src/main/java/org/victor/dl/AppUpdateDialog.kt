@@ -11,9 +11,11 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import org.victor.dl.library.CoroutinesDL.download
 import org.victor.dl.library.core.DownloadTask
 import org.victor.dl.library.data.State
@@ -89,14 +91,18 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
         // listen download progress
         downloadTask?.progress()
             ?.onEach {
-                Log.e(TAG,"percent = " + it.percent())
-                mPbDownloadProgress?.progress = it.percent().toInt()
+                withContext(Dispatchers.Main) {
+                    Log.e(TAG,"percent = " + it.percent())
+                    mPbDownloadProgress?.progress = it.percent().toInt()
+                    mTvStatus?.text = it.percentStr()
+                }
             }
             ?.launchIn(lifecycleScope!!)
 
         // or listen download state
         downloadTask?.state()
             ?.onEach {
+                Log.e(TAG,"state = None..................it = $it")
                 when (it) {
                     is State.None -> {
                         Log.e(TAG,"state = None..................")

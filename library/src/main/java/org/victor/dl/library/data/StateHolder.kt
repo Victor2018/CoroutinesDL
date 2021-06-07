@@ -1,5 +1,7 @@
 package org.victor.dl.library.data
 
+import android.util.Log
+
 
 /*
  * -----------------------------------------------------------------
@@ -12,6 +14,7 @@ package org.victor.dl.library.data
  * -----------------------------------------------------------------
  */
 class StateHolder {
+    val TAG = "StateHolder"
     val none by lazy { State.None() }
     val waiting by lazy { State.Waiting() }
     val downloading by lazy { State.Downloading() }

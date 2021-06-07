@@ -1,6 +1,5 @@
 package org.victor.dl.library.core
 
-import com.flash.worker.lib.coremodel.http.converter.FastJsonConverterFactory
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import org.victor.dl.library.interfaces.DownloadApiService
@@ -43,7 +42,7 @@ object ApiClient {
         Retrofit.Builder()
             .baseUrl(FAKE_BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(FastJsonConverterFactory.create())
+//            .addConverterFactory(FastJsonConverterFactory.create())
             .build()
     }
 

@@ -37,13 +37,14 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
         downloadConfig: DownloadConfig,
         response: Response<ResponseBody>
     ) {
+        Log.e(TAG,"download()......")
         try {
             file = downloadParam.file()
             shadowFile = file.shadow()
             tmpFile = file.tmp()
 
             val alreadyDownloaded = checkFiles(downloadParam, downloadConfig, response)
-
+            Log.e(TAG,"download()......alreadyDownloaded = $alreadyDownloaded")
             if (alreadyDownloaded) {
                 downloadSize = response.contentLength()
                 totalSize = response.contentLength()
@@ -63,6 +64,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
         config: DownloadConfig,
         response: Response<ResponseBody>
     ): Boolean {
+        Log.e(TAG,"checkFiles()......")
         var alreadyDownloaded = false
 
         //make sure dir is exists
@@ -99,6 +101,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
     }
 
     private fun recreateFiles(contentLength: Long, totalRanges: Long, rangeSize: Long) {
+        Log.e(TAG,"recreateFiles()......")
         tmpFile.recreate()
         shadowFile.recreate(contentLength)
         rangeTmpFile = RangeTmpFileUtil(tmpFile)
@@ -106,6 +109,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
     }
 
     private suspend fun startDownload(param: DownloadParam, config: DownloadConfig) {
+        Log.e(TAG,"startDownload()......")
         val progressChannel = coroutineScope.actor<Int> {
             channel.consumeEach { downloadSize += it }
         }
@@ -125,6 +129,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
         config: DownloadConfig,
         sendChannel: SendChannel<Int>
     ) = coroutineScope {
+        Log.e(TAG,"RangeUtil.download()......")
         val deferred = async(Dispatchers.IO) {
             val url = param.url
             val rangeHeader = mapOf("Range" to "bytes=${current}-${end}")

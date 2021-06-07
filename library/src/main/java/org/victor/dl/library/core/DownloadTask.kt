@@ -124,9 +124,11 @@ open class DownloadTask(
                     downloader = config.dispatcher.dispatch(this@DownloadTask, response)
                 }
 
+                Log.e(javaClass.simpleName,"suspendStart..........notifyStarted")
                 notifyStarted()
 
                 val deferred = async(Dispatchers.IO) { downloader?.download(param, config, response) }
+                Log.e(javaClass.simpleName,"suspendStart..........notifySucceed")
                 deferred.await()
 
                 notifySucceed()
