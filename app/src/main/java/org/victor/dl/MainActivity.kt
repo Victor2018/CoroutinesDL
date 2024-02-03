@@ -7,6 +7,10 @@ import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import kotlinx.coroutines.GlobalScope
+import org.victor.dl.library.CoroutinesDL.download
+import org.victor.dl.library.util.clear
+import org.victor.dl.library.util.shadow
+import org.victor.dl.library.util.tmp
 import java.io.File
 
 class MainActivity : AppCompatActivity(),View.OnClickListener {
@@ -37,22 +41,14 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 updateDialog.show()
             }
             R.id.mBtnDelete -> {
-                deleteDir(File(filesDir.path))
+                deleteDir()
             }
         }
     }
 
-    fun deleteDir(dir: File?): Boolean {
-        if (dir != null && dir.isDirectory) {
-            val children = dir.list()
-            for (i in children.indices) {
-                val success = deleteDir(File(dir, children[i]))
-                if (!success) {
-                    return false
-                }
-            }
-        }
-        //判定空
-        return dir?.delete() ?: false
+    fun deleteDir() {
+        val data = LatestVersionData()
+        val downloadTask = GlobalScope.download(data.appDownloadUrl ?: "",filesDir.path)
+        downloadTask.remove()
     }
 }

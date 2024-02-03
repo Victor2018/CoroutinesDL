@@ -44,6 +44,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
             tmpFile = file.tmp()
 
             val alreadyDownloaded = checkFiles(downloadParam, downloadConfig, response)
+            Log.e(TAG,"download()......alreadyDownloaded = $alreadyDownloaded")
 
             if (alreadyDownloaded) {
                 downloadSize = response.contentLength()

@@ -57,7 +57,7 @@
         android:layout_marginTop="25dp"
         android:paddingStart="60dp"
         android:paddingEnd="60dp"
-        android:gravity="center"
+        android:gravity="start"
         android:textSize="18sp"
         android:textColor="#666666"
         tools:text="1.修复已知BUG，运行更顺畅\n2.修复已知BUG，运行更顺畅\n3.修复已知BUG，运行更顺畅\n4.修复已知BUG，运行更顺畅"/>

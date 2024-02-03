@@ -35,7 +35,6 @@ open class DownloadTask(
 
     private val downloadProgressFlow = MutableStateFlow(0)
     private val downloadStateFlow = MutableStateFlow<State>(stateHolder.none)
-    private var downloadComplete: Boolean = false
 
     fun isStarted(): Boolean {
         return stateHolder.isStarted()

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.victor.dl.library.CoroutinesDL.download
 import org.victor.dl.library.core.DownloadTask
+import org.victor.dl.library.data.State
 import org.victor.dl.library.util.InstallApkUtil
 
 /*
@@ -79,7 +80,12 @@ class AppUpdateDialog(context: Context): AbsDialog(context), View.OnClickListene
             mLatestVersionData?.appDownloadUrl ?: "",context.filesDir.path)
 
         downloadTask?.state()
-            ?.onEach { mTvDownload?.setState(it) }
+            ?.onEach {
+                mTvDownload?.setState(it)
+                if (it is State.Succeed) {
+                    InstallApkUtil.install(context,downloadTask?.file()!!)
+                }
+            }
             ?.launchIn(lifecycleScope!!)
 
     }
