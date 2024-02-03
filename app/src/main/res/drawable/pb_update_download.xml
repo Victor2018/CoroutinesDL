@@ -4,8 +4,8 @@
     <!--设置ProgressBar背景色-->
     <item android:id="@android:id/background">
         <shape>
-            <corners android:radius="7dp"/>
-            <solid android:color="#FFEDB1"/>
+            <corners android:radius="10dp"/>
+            <solid android:color="#EFB33B"/>
         </shape>
     </item>
 

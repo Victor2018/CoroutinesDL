@@ -21,7 +21,7 @@ import java.io.File
  * Description: 
  * -----------------------------------------------------------------
  */
-@OptIn(ObsoleteCoroutinesApi::class, FlowPreview::class, ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 open class DownloadTask(
     val coroutineScope: CoroutineScope,
     val param: DownloadParam,
@@ -71,7 +71,6 @@ open class DownloadTask(
      */
     fun start() {
         Log.e(javaClass.simpleName,"start..........")
-        downloadComplete = false
         coroutineScope.launch {
             if (checkJob()) return@launch
 
@@ -98,14 +97,12 @@ open class DownloadTask(
         val errorHandler = CoroutineExceptionHandler { _, throwable ->
             throwable.printStackTrace()
             if (throwable !is CancellationException) {
-                throwable.printStackTrace()
                 coroutineScope.launch {
                     notifyFailed()
                 }
             }
         }
         downloadJob = coroutineScope.launch(errorHandler + Dispatchers.IO) {
-            Log.e(javaClass.simpleName,"suspendStart..........param.url = " + param.url)
             val response = config.request(param.url, DownloadConfig.RANGE_CHECK_HEADER)
             try {
                 if (!response.isSuccessful || response.body() == null) {
@@ -116,19 +113,16 @@ open class DownloadTask(
                     param.saveName = response.fileName()
                 }
                 if (param.savePath.isEmpty()) {
-//                    param.savePath = DownloadConfig.DEFAULT_SAVE_PATH
-                    Log.e(javaClass.simpleName,"suspendStart..........savePath is empty")
+                    param.savePath = DownloadConfig.DEFAULT_SAVE_PATH
                 }
 
                 if (downloader == null) {
                     downloader = config.dispatcher.dispatch(this@DownloadTask, response)
                 }
 
-                Log.e(javaClass.simpleName,"suspendStart..........notifyStarted")
                 notifyStarted()
 
                 val deferred = async(Dispatchers.IO) { downloader?.download(param, config, response) }
-                Log.e(javaClass.simpleName,"suspendStart..........notifySucceed")
                 deferred.await()
 
                 notifySucceed()
@@ -173,23 +167,23 @@ open class DownloadTask(
      * @param ensureLast 能否收到最后一个进度
      */
     fun progress(interval: Long = 200, ensureLast: Boolean = true): Flow<Progress> {
-        return downloadProgressFlow.flatMapConcat {
+        return downloadProgressFlow.flatMapLatest {
+            // make sure send once
+            var hasSend = false
             channelFlow {
                 while (currentCoroutineContext().isActive) {
                     val progress = getProgress()
 
-                    if (downloadComplete && stateHolder.isEnd()) {
+                    if (hasSend && stateHolder.isEnd()) {
                         if (!ensureLast) {
                             break
                         }
                     }
 
-                    if (progress.percent() > 0 && !downloadComplete) {
-                        send(progress)
-                        Log.e(TAG,"url = ${param.url}")
-                        Log.e(TAG,"progress =  ${progress.percentStr()}")
-                        downloadComplete = progress.isComplete()
-                    }
+                    send(progress)
+                    Log.e(TAG,"url = ${param.url}")
+                    Log.e(TAG,"progress =  ${progress.percentStr()}")
+                    hasSend = true
 
                     if (progress.isComplete()) break
 

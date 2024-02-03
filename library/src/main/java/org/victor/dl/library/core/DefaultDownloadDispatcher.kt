@@ -23,12 +23,10 @@ object DefaultDownloadDispatcher : DownloadDispatcher {
     val TAG = "DefaultDownloadDispatcher"
     @SuppressLint("LongLogTag")
     override fun dispatch(downloadTask: DownloadTask, resp: Response<ResponseBody>): DownloaderListener {
-        return if (resp.isSupportRange()) {
-            Log.e(TAG,"dispatch-RangeDownloader")
-            RangeDownloader(downloadTask.coroutineScope)
-        } else {
-            Log.e(TAG,"dispatch-NormalDownloader")
+        return if (downloadTask.config.disableRangeDownload || !resp.isSupportRange()) {
             NormalDownloader(downloadTask.coroutineScope)
+        } else {
+            RangeDownloader(downloadTask.coroutineScope)
         }
     }
 }

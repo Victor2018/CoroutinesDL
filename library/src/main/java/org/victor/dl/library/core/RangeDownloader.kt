@@ -24,7 +24,7 @@ import java.io.File
  * Description: 
  * -----------------------------------------------------------------
  */
-@OptIn(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@OptIn(ObsoleteCoroutinesApi::class)
 class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineScope) {
     val TAG = "RangeDownloader"
     private lateinit var file: File
@@ -44,7 +44,7 @@ class RangeDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineS
             tmpFile = file.tmp()
 
             val alreadyDownloaded = checkFiles(downloadParam, downloadConfig, response)
-            Log.e(TAG,"download()......alreadyDownloaded = $alreadyDownloaded")
+
             if (alreadyDownloaded) {
                 downloadSize = response.contentLength()
                 totalSize = response.contentLength()

@@ -21,7 +21,6 @@ import java.io.File
  * Description: 
  * -----------------------------------------------------------------
  */
-@OptIn(ObsoleteCoroutinesApi::class)
 class NormalDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutineScope) {
     companion object {
         private const val BUFFER_SIZE = 8192L
@@ -90,7 +89,9 @@ class NormalDownloader(coroutineScope: CoroutineScope) : AbsDownloader(coroutine
             while (isActive && readLen != -1L) {
                 downloadSize += readLen
                 readLen = source.read(buffer, BUFFER_SIZE)
+                sink.flush()
             }
+            sink.flush()
         }
         deferred.await()
 
